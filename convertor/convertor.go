@@ -114,4 +114,11 @@ func DigitValue(r rune) int {
 	}
 }
 
+func ToBase(n *big.Int, base int) (string, error) {
+	if base < 2 || base > 36 {
+		return "", ErrInvalidBase
+	}
+	return strings.ToUpper(n.Text(base)), nil
+}
+
 }
