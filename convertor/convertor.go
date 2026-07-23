@@ -54,12 +54,13 @@ func StripPrefix(s string) (cleaned string, impliedBase int) {
 		s = "-" + s
 	}
 	return s, impliedBase
+}
 
 // ParseInt parses s as an integer in the given base and returns a *big.Int.
 // If base is 0, it auto-detects from a 0x/0b/0o prefix and defaults to
 // decimal if none is found. Underscores are allowed as digit separators
 // (e.g. "1010_1100") and are stripped before parsing.
-func ParseInt(s string, base int) (*big.Int, Error) {
+func ParseInt(s string, base int) (*big.Int, error) {
 	s = strings.ReplaceAll(strings.TrimSpace(s), "-", "")
 	if s == "" {
 		return nil, fmt.Errorf("empty input")
@@ -94,7 +95,7 @@ func findBadDigit(s string, base int) error {
 			continue
 		}
 		v := digitValue(r)
-		if v < 0 || v >=base {
+		if v < 0 || v >= base {
 			return &ErrInvalidDigit{Digit: r, Base: base}
 		}
 	}
@@ -103,12 +104,12 @@ func findBadDigit(s string, base int) error {
 
 func DigitValue(r rune) int {
 	switch {
-	case r >= '0' && r <='9':
-		return int(r -'o')
-	case r >= 'a' && r <='z':
-		return int(r -'a') + 10
-	case r >= 'A' && r <='Z':
-		return int(r -'A') + 10
+	case r >= '0' && r <= '9':
+		return int(r - '0')
+	case r >= 'a' && r <= 'z':
+		return int(r-'a') + 10
+	case r >= 'A' && r <= 'Z':
+		return int(r-'A') + 10
 	default:
 		return -1
 	}
@@ -121,4 +122,18 @@ func ToBase(n *big.Int, base int) (string, error) {
 	return strings.ToUpper(n.Text(base)), nil
 }
 
+// Convert parses s in fromBase (0 = auto-detect) and renders it in toBase.
+func Convert(s string, fromBase, toBase int) (string, error) {
+	n, err := ParseInt(s, fromBase)
+	if err != nil {
+		return "", err
+	}
+	return ToBase(n, toBase)
 }
+
+// Convenience wrappers for the four bases people reach for most.
+
+func ToBinary(s string, fromBase int) (string, error)  { return Convert(s, fromBase, Binary) }
+func ToOctal(s string, fromBase int) (string, error)   { return Convert(s, fromBase, Octal) }
+func ToDecimal(s string, fromBase int) (string, error) { return Convert(s, fromBase, Decimal) }
+func ToHex(s string, fromBase int) (string, error)     { return Convert(s, fromBase, Hexadecimal) }
