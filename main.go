@@ -47,6 +47,20 @@ func runInteractive() {
 	}
 }
 
+// parseInteractiveLine expects "<value> -> <base>" or "<value> <base>".
+func parseInteractiveLine(line string) (value string, base int, err error) {
+	line = strings.ReplaceAll(line, "->", " ")
+	fields := strings.Fields(line)
+	if len(fields) != 2 {
+		return "", 0, fmt.Errorf(`expected format "<value> -> <base>", e.g. "0x25B9D2 -> 2"`)
+	}
+	base, err = strconv.Atoi(fields[1])
+	if err != nil {
+		return "", 0, fmt.Errorf("target base must be a number: %w", err)
+	}
+	return fields[0], base, nil
+}
+
 
 func main() {
 }
