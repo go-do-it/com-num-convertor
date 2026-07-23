@@ -61,6 +61,55 @@ func parseInteractiveLine(line string) (value string, base int, err error) {
 	return fields[0], base, nil
 }
 
+// withBasePrefix adds a conventional prefix for common bases so output
+func withBasePrefix(s string, base int) string {
+	switch base {
+	case converter.Binary:
+		return "0b" + s
+	case converter.Octal:
+		return "0o" + s
+	case converter.Hexadecimal:
+		return "0x" + s
+	default:
+		return s
+	}
+}
+
+func printUsage() {
+	fmt.Fprintln(os.Stderr, `numconv - convert numbers between bases 2-36
+
+Usage:
+  numconv [--from BASE] [--to BASE] <value>   (flags must come before value)
+  numconv                                     # interactive mode
+
+Flags:`)
+	flag.PrintDefaults()
+	fmt.Fprintln(os.Stderr, `
+Examples:
+  numconv --to 2 0x25B9D2
+  numconv --from 2 --to 16 1010111001001001
+  numconv --to 16 255`)
+}
 
 func main() {
+	from := flag.Int("from", 0, "source base (2-36). 0 = auto-detect from 0x/0b/0o prefix, else decimal")
+	to := flag.Int("to", 10, "target base (2-36)")
+	flag.Usage = printUsage
+	flag.Parse()
+
+	args := flag.Args()
+
+	if len(args) == 0 {
+		runInteractive()
+		return
+	}
+
+	result, err := converter.Convert(args[0], *from, *to)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+	fmt.Println(withBasePrefix(result, *to))
 }
+
+
