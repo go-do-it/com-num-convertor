@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"flag"
 
-	"numconv/converter"
+	"num_conv/converter"
 )
 
 // runInteractive prompts the user in a loop so they don't have to
